@@ -21,16 +21,19 @@
 #define KEY_ALT         18
 #define KEY_SPACE       1
 #define KEY_BACKSPACE   8
-#define KEY_LEFT        37
-#define KEY_UP          38
-#define KEY_RIGHT       39
-#define KEY_DOWN        40
 #define KEY_Q           'Q'
 #define KEY_q           'q'
 #define KEY_f           'f'
 #define KEY_F           'F'
 #define KEY_DEC          45
 #define KEY_ADD           61
+
+// Direction
+#define KEY_LEFT            100
+#define KEY_UP              101
+#define KEY_RIGHT           102
+#define KEY_DOWN            103
+
 
 #define G_BMB_BPP   32
 static int g_full_screen_flag = 0;
@@ -43,13 +46,14 @@ float g_rotated_z = 0, g_rotated_y = 0, g_rotated_x = 0;
 float g_color = 1.0f;
 float g_scale_count = 1.0f;
 unsigned int g_texture[3];
+int g_texture_count = 0;
 
 /* The number of our GLUT window */
 int window;
 
 GLfloat g_light_ambient[] = {0.5f, 0.5f, 0.5f, 1.0f};
 GLfloat g_light_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
-GLfloat g_light_possion[] = {0.0f, 0.0f, 2.0f, 1.0f};
+GLfloat g_light_position[] = {0.0f, 0.0f, 2.0f, 1.0f};
 GLfloat filter;
 
 
@@ -256,8 +260,8 @@ int load_gltextures(void)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        //glTexImage2D(GL_TEXTURE_2D, 0, 3, image->x, image->y, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data);
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, image->x, image->y, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
+        glTexImage2D(GL_TEXTURE_2D, 0, 4, image->x, image->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, image->x, image->y, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
 
         if(image)
         {
@@ -284,8 +288,6 @@ void InitGL(int Width, int Height)	        // We call this right after our OpenG
         exit(1);
     }
 
-    glEnable(GL_TEXTURE_2D);
-
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);		// This Will Clear The Background Color To Black
     glClearDepth(1.0);				// Enables Clearing Of The Depth Buffer
     glDepthFunc(GL_LESS);				// The Type Of Depth Test To Do
@@ -298,6 +300,13 @@ void InitGL(int Width, int Height)	        // We call this right after our OpenG
     gluPerspective(45.0f,(GLfloat)Width/(GLfloat)Height,0.1f,100.0f);	// Calculate The Aspect Ratio Of The Window
 
     glMatrixMode(GL_MODELVIEW);
+
+    glEnable(GL_TEXTURE_2D);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, g_light_ambient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, g_light_diffuse);
+    glLightfv(GL_LIGHT1, GL_POSITION, g_light_position);
+    glEnable(GL_LIGHT1);
+
 }
 
 /* The function called when our window is resized (which shouldn't happen, because we're fullscreen) */
@@ -323,13 +332,13 @@ void DrawGLScene()
     print("count = %d\n", count++);
     glLoadIdentity();				// Reset The View
 
-    glTranslatef(-1.5f,0.0f,-6.0+1.0f*g_scale_count);		// Move Left 1.5 Units And Into The Screen 6.0
+    glTranslatef(0.0f,0.0f,-6.0+1.0f*g_scale_count);		// Move Left 1.5 Units And Into The Screen 6.0
     glRotatef(g_rotated_x,1.0f, 0.0f,0.0f);
     glRotatef(g_rotated_y,0.0f, 1.0f,0.0f);
     glRotatef(g_rotated_z,0.0f, 0.0f,1.0f);
     //glScaled(1.0f*g_scale_count,1.0f*g_scale_count,1.0f*g_scale_count);
 
-    glBindTexture(GL_TEXTURE_2D, g_texture[0]);
+    glBindTexture(GL_TEXTURE_2D, g_texture[g_texture_count]);
 
     // draw a triangle
     //glBegin(GL_POLYGON);				// start drawing a polygon
@@ -346,10 +355,10 @@ void DrawGLScene()
     glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);	// Top Right Of The Texture and Quad
     glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	// Top Left Of The Texture and Quad
     glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
-    glEnd();                                    // done with the polygon.
-
-    glBindTexture(GL_TEXTURE_2D, g_texture[1]);
-    glBegin(GL_QUADS);				// start drawing a polygon
+//    glEnd();                                    // done with the polygon.
+//
+//    glBindTexture(GL_TEXTURE_2D, g_texture[1]);
+//    glBegin(GL_QUADS);				// start drawing a polygon
     // Top Face
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);	// Top Left Of The Texture and Quad
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);	// Bottom Left Of The Texture and Quad
@@ -361,10 +370,10 @@ void DrawGLScene()
     glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	// Top Left Of The Texture and Quad
     glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);	// Bottom Left Of The Texture and Quad
     glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);	// Bottom Right Of The Texture and Quad
-    glEnd();                                    // done with the polygon.
-
-    glBindTexture(GL_TEXTURE_2D, g_texture[2]);
-    glBegin(GL_QUADS);				// start drawing a polygon
+//    glEnd();                                    // done with the polygon.
+//
+//    glBindTexture(GL_TEXTURE_2D, g_texture[2]);
+//    glBegin(GL_QUADS);				// start drawing a polygon
     // Right face
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	// Top Right Of The Texture and Quad
@@ -442,30 +451,6 @@ void keyPressed(unsigned char key, int x, int y)
             g_scale_count -= 0.1f;
         }
     }
-    else if(key == 'q')
-    {
-        g_rotated_z += 2.0f;
-    }
-    else if(key == 'e')
-    {
-        g_rotated_z -= 2.0f;
-    }
-    else if(key == 'w')
-    {
-        g_rotated_x -= 2.0f;
-    }
-    else if(key == 's')
-    {
-        g_rotated_x += 2.0f;
-    }
-    else if(key == 'a')
-    {
-        g_rotated_y -= 2.0f;
-    }
-    else if(key == 'd')
-    {
-        g_rotated_y += 2.0f;
-    }
     else if(key == 'c')
     {
         g_color += 0.1f;
@@ -478,6 +463,58 @@ void keyPressed(unsigned char key, int x, int y)
         if(g_color < 0.0f)
             g_color = 1.0f;
     }
+    else if(key == 'l'
+            || key == 'L')
+    {
+        static int light = 0;
+        if(light)
+        {
+            light = 0;
+            glEnable(GL_LIGHTING);
+            print("enable light");
+        }
+        else
+        {
+            light = 1;
+            glDisable(GL_LIGHTING);
+            print("disable light");
+        }
+    }
+    else if(key == 'n'
+            || key == 'N')
+    {
+        g_texture_count += 1;
+        if(g_texture_count == 3)
+            g_texture_count = 0;
+    }
+    DrawGLScene();
+}
+
+void specialkey_press(int key, int x, int y)
+{
+    print("key = %d", key);
+    switch(key)
+    {
+        case GLUT_KEY_PAGE_UP:
+            g_rotated_z += 2.0f;
+            break;
+        case GLUT_KEY_PAGE_DOWN:
+            g_rotated_z -= 2.0f;
+            break;
+        case GLUT_KEY_UP:
+            g_rotated_x -= 2.0f;
+            break;
+        case GLUT_KEY_DOWN:
+            g_rotated_x += 2.0f;
+            break;
+        case GLUT_KEY_LEFT:
+            g_rotated_y -= 2.0f;
+            break;
+        case GLUT_KEY_RIGHT:
+            g_rotated_y += 2.0f;
+            break;
+    }
+
     DrawGLScene();
 }
 
@@ -519,6 +556,8 @@ int main(int argc, char **argv)
 
     /* Register the function called when the keyboard is pressed. */
     glutKeyboardFunc(&keyPressed);
+
+    glutSpecialFunc(&specialkey_press);
 
     /* Initialize our window. */
     InitGL(g_win_rect.w,  g_win_rect.h);
