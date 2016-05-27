@@ -327,9 +327,9 @@ void ReSizeGLScene(int Width, int Height)
 /* The main drawing function. */
 void DrawGLScene()
 {
-    static int count = 0;
+    //static int count = 0;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// Clear The Screen And The Depth Buffer
-    print("count = %d\n", count++);
+    //print("count = %d\n", count++);
     glLoadIdentity();				// Reset The View
 
     glTranslatef(0.0f,0.0f,-6.0+1.0f*g_scale_count);		// Move Left 1.5 Units And Into The Screen 6.0
@@ -406,13 +406,28 @@ void DrawGLScene()
     glutSwapBuffers();
 }
 
+void my_mouse(int button, int state, int x, int y)
+{
+    print("button = %d, state = %d, x=%d, y = %d", button, state, x, y);
+    if(button == 4) // 滚轮向后
+    {
+        g_scale_count -= 0.1f;
+    }
+    else if(button == 3) // 滚轮向前
+    {
+        g_scale_count += 0.1f;
+    }
+
+    DrawGLScene();
+}
+
 /* The function called whenever a key is pressed. */
 void keyPressed(unsigned char key, int x, int y)
 {
     /* avoid thrashing this procedure */
     //usleep(100);
 
-    //print("key = %d\n", key);
+    print("key = %d, x = %d, y = %d", key, x, y);
 
     /* If escape is pressed, kill everything. */
     if (key == KEY_ESC)
@@ -492,7 +507,7 @@ void keyPressed(unsigned char key, int x, int y)
 
 void specialkey_press(int key, int x, int y)
 {
-    print("key = %d", key);
+    print("key = %d, x=%d, y=%d", key, x, y);
     switch(key)
     {
         case GLUT_KEY_PAGE_UP:
@@ -561,6 +576,8 @@ int main(int argc, char **argv)
 
     /* Initialize our window. */
     InitGL(g_win_rect.w,  g_win_rect.h);
+
+    glutMouseFunc(my_mouse);
 
     /* Start Event Processing Engine */
     glutMainLoop();
