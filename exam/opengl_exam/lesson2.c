@@ -46,6 +46,10 @@ unsigned int g_texture[3];
 /* The number of our GLUT window */
 int window;
 
+GLfloat g_light_ambient[] = {0.5f, 0.5f, 0.5f, 1.0f};
+GLfloat g_light_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
+GLfloat g_light_possion[] = {0.0f, 0.0f, 2.0f, 1.0f};
+GLfloat filter;
 
 
 #define print(...) print_debug(__FILE__, __FUNCTION__,__LINE__, ## __VA_ARGS__)
@@ -232,6 +236,7 @@ int load_gltextures(void)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
         glTexImage2D(GL_TEXTURE_2D, 0, 3, image->x, image->y, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data);
+        //gluBuild2DMipmaps(GL_TEXTURE_2D, 3, image->x, image->y, GL_RGB, GL_UNSIGNED_BYTE, image->data);
 
         if(image)
         {
