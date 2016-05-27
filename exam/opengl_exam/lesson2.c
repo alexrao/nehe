@@ -476,7 +476,7 @@ int main(int argc, char **argv)
     glutInitWindowPosition(g_win_rect.x,  g_win_rect.y);
 
     /* Open a window */
-    window = glutCreateWindow("Jeff Molofee's GL Code Tutorial ... NeHe '99");
+    window = glutCreateWindow("饶小平OpenGL练习测试");
 
     /* Register the function to do all our OpenGL drawing. */
     glutDisplayFunc(&DrawGLScene);
