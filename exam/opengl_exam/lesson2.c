@@ -32,6 +32,7 @@
 #define KEY_DEC          45
 #define KEY_ADD           61
 
+#define G_BMB_BPP   32
 static int g_full_screen_flag = 0;
 struct Rect
 {
@@ -148,8 +149,6 @@ int image_load(char *path, stu_image *image)
         return 0;
     }
 
-    size = image->x * image->y *3;
-
 
     ret = fread(&planes, 2, 1, fp);
     if(ret != 1)
@@ -171,7 +170,7 @@ int image_load(char *path, stu_image *image)
         return 0;
     }
 
-    if(bpp != 24)
+    if(bpp != 24 && bpp != 32)
     {
         print("bpp form[%s] is not 24:%u\n", path, bpp);
         return 0;
@@ -179,6 +178,14 @@ int image_load(char *path, stu_image *image)
 
     fseek(fp, 24, SEEK_CUR);
 
+    if(bpp == 24)
+    {
+        size = image->x * image->y * 3;
+    }
+    else
+    {
+        size = image->x * image->y * 4;
+    }
     image->data = (char *)malloc(size);
     if(image->data == NULL)
     {
@@ -193,13 +200,27 @@ int image_load(char *path, stu_image *image)
         return 0;
     }
 
-    for(int i=0; i<size; i+=3)
+    if(bpp == 32)
     {
-        temp = image->data[i];
-        image->data[i] = image->data[i+2];
-        image->data[i+2] = temp;
+        for(int i=0; i<size; i+=4)
+        {
+            temp = image->data[i];
+            image->data[i] = image->data[i+3];
+            image->data[i+3] = temp;
+            temp = image->data[i+1];
+            image->data[i+1] = image->data[i+2];
+            image->data[i+2] = temp;
+        }
     }
-
+    else
+    {
+        for(int i=0; i<size; i+=3)
+        {
+            temp = image->data[i];
+            image->data[i] = image->data[i+2];
+            image->data[i+2] = temp;
+        }
+    }
     return 1;
 
 }
@@ -235,8 +256,8 @@ int load_gltextures(void)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, 3, image->x, image->y, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data);
-        //gluBuild2DMipmaps(GL_TEXTURE_2D, 3, image->x, image->y, GL_RGB, GL_UNSIGNED_BYTE, image->data);
+        //glTexImage2D(GL_TEXTURE_2D, 0, 3, image->x, image->y, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data);
+        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, image->x, image->y, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
 
         if(image)
         {
