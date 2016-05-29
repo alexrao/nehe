@@ -4,7 +4,7 @@ LIBDIR  = -L/usr/X11R6/lib
 COMPILERFLAGS = -Wall
 CC = gcc
 CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
-LIBRARIES = -lX11 -lXi -lXmu -lglut -lGL -lGLU -lm 
+LIBRARIES = -lglut -lGL -lGLU -lm #-lX11 -lXi -lXmu 
 
 # for all, set the targets to be every lesson1.c-lesson13.c 
 # file, removing the .c extension.  That is, at this point,

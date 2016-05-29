@@ -54,6 +54,7 @@ int window;
 GLfloat g_light_ambient[] = {0.5f, 0.5f, 0.5f, 1.0f};
 GLfloat g_light_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
 GLfloat g_light_position[] = {0.0f, 0.0f, 2.0f, 1.0f};
+GLfloat g_light_position1[] = {0.0f, 3.0f, 0.0f, 0.0f};
 GLfloat filter;
 
 
@@ -260,8 +261,8 @@ int load_gltextures(void)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, 4, image->x, image->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
-        //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, image->x, image->y, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
+        //glTexImage2D(GL_TEXTURE_2D, 0, 4, image->x, image->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
+        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, image->x, image->y, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
 
         if(image)
         {
@@ -288,10 +289,16 @@ void InitGL(int Width, int Height)	        // We call this right after our OpenG
         exit(1);
     }
 
+    glEnable(GL_TEXTURE_2D);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);		// This Will Clear The Background Color To Black
     glClearDepth(1.0);				// Enables Clearing Of The Depth Buffer
     glDepthFunc(GL_LESS);				// The Type Of Depth Test To Do
+#if 0
     glEnable(GL_DEPTH_TEST);			// Enables Depth Testing
+#else
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);		    // Turn Blending On
+#endif
     glShadeModel(GL_SMOOTH);			// Enables Smooth Color Shading
 
     glMatrixMode(GL_PROJECTION);
@@ -301,12 +308,20 @@ void InitGL(int Width, int Height)	        // We call this right after our OpenG
 
     glMatrixMode(GL_MODELVIEW);
 
-    glEnable(GL_TEXTURE_2D);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, g_light_ambient);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, g_light_diffuse);
-    glLightfv(GL_LIGHT1, GL_POSITION, g_light_position);
-    glEnable(GL_LIGHT1);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, g_light_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, g_light_diffuse);
+    glLightfv(GL_LIGHT0, GL_POSITION, g_light_position);
+    glEnable(GL_LIGHT0);
 
+//    glLightfv(GL_LIGHT1, GL_AMBIENT, g_light_ambient);
+//    glLightfv(GL_LIGHT1, GL_DIFFUSE, g_light_diffuse);
+//    glLightfv(GL_LIGHT1, GL_POSITION, g_light_position1);
+//    glEnable(GL_LIGHT1);
+
+
+    /* setup blending */
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE);			// Set The Blending Function For Translucency
+    glColor4f(1.0f, 1.0f, 1.0f, 0.5);
 }
 
 /* The function called when our window is resized (which shouldn't happen, because we're fullscreen) */
@@ -344,7 +359,7 @@ void DrawGLScene()
     //glBegin(GL_POLYGON);				// start drawing a polygon
     glBegin(GL_QUADS);				// start drawing a polygon
 
-    glColor3f(g_color, g_color, g_color);
+    glColor4f(g_color, g_color, g_color,  g_color);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);	// Bottom Left Of The Texture and Quad
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);	// Bottom Right Of The Texture and Quad
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);	// Top Right Of The Texture and Quad
@@ -355,10 +370,10 @@ void DrawGLScene()
     glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);	// Top Right Of The Texture and Quad
     glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	// Top Left Of The Texture and Quad
     glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	// Bottom Left Of The Texture and Quad
-//    glEnd();                                    // done with the polygon.
-//
-//    glBindTexture(GL_TEXTURE_2D, g_texture[1]);
-//    glBegin(GL_QUADS);				// start drawing a polygon
+    glEnd();                                    // done with the polygon.
+
+    glBindTexture(GL_TEXTURE_2D, g_texture[1]);
+    glBegin(GL_QUADS);				// start drawing a polygon
     // Top Face
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);	// Top Left Of The Texture and Quad
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);	// Bottom Left Of The Texture and Quad
@@ -370,10 +385,10 @@ void DrawGLScene()
     glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	// Top Left Of The Texture and Quad
     glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);	// Bottom Left Of The Texture and Quad
     glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);	// Bottom Right Of The Texture and Quad
-//    glEnd();                                    // done with the polygon.
-//
-//    glBindTexture(GL_TEXTURE_2D, g_texture[2]);
-//    glBegin(GL_QUADS);				// start drawing a polygon
+    glEnd();                                    // done with the polygon.
+
+    glBindTexture(GL_TEXTURE_2D, g_texture[2]);
+    glBegin(GL_QUADS);				// start drawing a polygon
     // Right face
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	// Bottom Right Of The Texture and Quad
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	// Top Right Of The Texture and Quad
@@ -501,6 +516,25 @@ void keyPressed(unsigned char key, int x, int y)
         g_texture_count += 1;
         if(g_texture_count == 3)
             g_texture_count = 0;
+    }
+    else if(key == 'b'
+            || key == 'B')
+    {
+        static int blent = 0;
+        if(blent)
+        {
+            print("disable blend");
+            blent = 0;
+            glDisable(GL_BLEND);
+            glEnable(GL_DEPTH_TEST);
+        }
+        else
+        {
+            blent = 1;
+            print("enable blend");
+            glEnable(GL_BLEND);
+            glDisable(GL_DEPTH_TEST);
+        }
     }
     DrawGLScene();
 }
