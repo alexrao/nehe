@@ -59,6 +59,17 @@ GLfloat g_light_position[] = {0.0f, 0.0f, 2.0f, 1.0f};
 GLfloat g_light_position1[] = {0.0f, 3.0f, 0.0f, 0.0f};
 GLfloat filter;
 
+#define STAR_NUM   50
+
+typedef struct
+{
+    int r, g, b;
+    GLfloat     dist;
+    GLfloat     angle;
+} struct_stars;
+
+struct_stars star[STAR_NUM];
+
 int load_gltextures(void)
 {
     char path[256];
@@ -134,7 +145,7 @@ void InitGL(int Width, int Height)	        // We call this right after our OpenG
 #if 0
     glEnable(GL_DEPTH_TEST);			// Enables Depth Testing
 #else
-    glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);		    // Turn Blending On
 #endif
     glShadeModel(GL_SMOOTH);			// Enables Smooth Color Shading
@@ -160,6 +171,16 @@ void InitGL(int Width, int Height)	        // We call this right after our OpenG
     /* setup blending */
     glBlendFunc(GL_SRC_ALPHA,GL_ONE);			// Set The Blending Function For Translucency
     glColor4f(1.0f, 1.0f, 1.0f, 0.5);
+
+    for(int i=0; i<STAR_NUM; i++)
+    {
+        star[i].angle = 0.0f;
+        star[i].dist = i*1.0f/STAR_NUM *5.0f;
+
+        star[i].r = rand()%256;
+        star[i].g = rand()%256;
+        star[i].b = rand()%256;
+    }
 }
 
 
@@ -178,9 +199,59 @@ void window_resize(int Width, int Height)
     gluPerspective(45.0f,(GLfloat)Width/(GLfloat)Height,0.1f,100.0f);
     glMatrixMode(GL_MODELVIEW);
 }
+#if 1
+void my_display(void)
+{
+    static GLfloat spin = 0.0f;
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glBindTexture(GL_TEXTURE_2D, g_texture[g_texture_count]);
 
+    for(int i=0; i<STAR_NUM; i++)
+    {
+        glLoadIdentity();
+        glTranslatef(0.0f, 0.0f, -10.0 + 1.0f*g_scale_count);
+        glRotatef(g_rotated_x,1.0f, 0.0f,0.0f);
+        glRotatef(g_rotated_y,0.0f, 1.0f,0.0f);
+        glRotatef(g_rotated_z,0.0f, 0.0f,1.0f);
+
+        glRotatef(90, 1.0f, 0.0f, 0.0f);       // tilt the view.
+        glRotatef(star[i].angle, 0.0f, 1.0f, 0.0f);
+        //glTranslatef(0.0f, 0.0f, star[i].dist);
+        glTranslatef( star[i].dist, 0.0f, 0.0f);
+
+        glRotatef(-star[i].angle, 0.0f, 1.0f, 0.0f);
+        //glTranslatef(star[i].angle, 0.0f, 0.0f);
+        glRotatef(-90, 1.0f, 0.0f, 0.0f);      // cancel the screen tilt.
+
+        glRotatef(spin, 0.0f, 0.0f, 1.0f);
+
+        glColor4ub(star[i].r, star[i].g, star[i].b, 255);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.3f, -0.3f, 0.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(0.3f, -0.3f, 0.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(0.3f, 0.3f, 0.0f);
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.3f, 0.3f, 0.0f);
+        glEnd();
+
+        spin += 0.01f;
+        star[i].angle += i*1.0f/STAR_NUM * 1.0f;
+        star[i].dist -= 0.01f;
+
+        if(star[i].dist < 0.0f)
+        {
+            star[i].dist += 5.0f;
+            star[i].r = rand()/256;
+            star[i].g = rand()/256;
+            star[i].b = rand()/256;
+        }
+    }
+
+    glutSwapBuffers();
+}
+
+#else
 /* The main drawing function. */
-void my_display()
+void my_display(void)
 {
     //static int count = 0;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// Clear The Screen And The Depth Buffer
@@ -260,6 +331,7 @@ void my_display()
     // swap buffers to display, since we're double buffered.
     glutSwapBuffers();
 }
+#endif
 
 void mouse_fun(int button, int state, int x, int y)
 {
@@ -433,11 +505,11 @@ int main(int argc, char **argv)
     glutDisplayFunc(&my_display);
 
     /* Go fullscreen.  This is the soonest we could possibly go fullscreen. */
-    //glutFullScreen();
-    g_full_screen_flag = 0;
+    glutFullScreen();
+    g_full_screen_flag = 1;
 
     /* Even if there are no events, redraw our gl scene. */
-    //glutIdleFunc(&my_display);
+    glutIdleFunc(&my_display);
 
     /* Register the function called when our window is resized. */
     glutReshapeFunc(&window_resize);
