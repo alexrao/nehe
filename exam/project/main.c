@@ -156,7 +156,7 @@ void InitGL(int Width, int Height)	        // We call this right after our OpenG
 
 
 /* The function called when our window is resized (which shouldn't happen, because we're fullscreen) */
-void ReSizeGLScene(int Width, int Height)
+void window_resize(int Width, int Height)
 {
     if (Height==0)				// Prevent A Divide By Zero If The Window Is Too Small
         Height=1;
@@ -171,7 +171,7 @@ void ReSizeGLScene(int Width, int Height)
 }
 
 /* The main drawing function. */
-void DrawGLScene()
+void my_display()
 {
     //static int count = 0;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// Clear The Screen And The Depth Buffer
@@ -252,7 +252,7 @@ void DrawGLScene()
     glutSwapBuffers();
 }
 
-void my_mouse(int button, int state, int x, int y)
+void mouse_fun(int button, int state, int x, int y)
 {
     print("button = %d, state = %d, x=%d, y = %d", button, state, x, y);
     if(button == 4) // 滚轮向后
@@ -264,11 +264,11 @@ void my_mouse(int button, int state, int x, int y)
         g_scale_count += 0.1f;
     }
 
-    DrawGLScene();
+    my_display();
 }
 
 /* The function called whenever a key is pressed. */
-void keyPressed(unsigned char key, int x, int y)
+void key_pressed(unsigned char key, int x, int y)
 {
     /* avoid thrashing this procedure */
     //usleep(100);
@@ -367,7 +367,7 @@ void keyPressed(unsigned char key, int x, int y)
             glDisable(GL_DEPTH_TEST);
         }
     }
-    DrawGLScene();
+    my_display();
 }
 
 void specialkey_press(int key, int x, int y)
@@ -395,7 +395,7 @@ void specialkey_press(int key, int x, int y)
             break;
     }
 
-    DrawGLScene();
+    my_display();
 }
 
 int main(int argc, char **argv)
@@ -404,7 +404,6 @@ int main(int argc, char **argv)
        X Windows - look at its documentation at http://reality.sgi.com/mjk/spec3/spec3.html */
     glutInit(&argc, argv);
 
-    print( "start");
     /* Select type of Display mode:
        Double buffer
        RGBA color
@@ -419,30 +418,30 @@ int main(int argc, char **argv)
     glutInitWindowPosition(g_win_rect.x,  g_win_rect.y);
 
     /* Open a window */
-    window = glutCreateWindow("饶小平OpenGL练习测试");
+    window = glutCreateWindow("RXP OpenGL练习测试");
 
     /* Register the function to do all our OpenGL drawing. */
-    glutDisplayFunc(&DrawGLScene);
+    glutDisplayFunc(&my_display);
 
     /* Go fullscreen.  This is the soonest we could possibly go fullscreen. */
     //glutFullScreen();
     g_full_screen_flag = 0;
 
     /* Even if there are no events, redraw our gl scene. */
-    //glutIdleFunc(&DrawGLScene);
+    //glutIdleFunc(&my_display);
 
     /* Register the function called when our window is resized. */
-    glutReshapeFunc(&ReSizeGLScene);
+    glutReshapeFunc(&window_resize);
 
     /* Register the function called when the keyboard is pressed. */
-    glutKeyboardFunc(&keyPressed);
+    glutKeyboardFunc(&key_pressed);
 
     glutSpecialFunc(&specialkey_press);
 
     /* Initialize our window. */
     InitGL(g_win_rect.w,  g_win_rect.h);
 
-    glutMouseFunc(my_mouse);
+    glutMouseFunc(mouse_fun);
 
     /* Start Event Processing Engine */
     glutMainLoop();
