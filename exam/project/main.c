@@ -12,6 +12,8 @@
 #include <unistd.h>     // Header File For sleeping.
 #include <stdio.h>
 #include <stdarg.h>
+#include "print.h"
+#include "image.h"
 
 /* ASCII code for the escape key. */
 #define KEY_ESC         27
@@ -56,179 +58,6 @@ GLfloat g_light_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
 GLfloat g_light_position[] = {0.0f, 0.0f, 2.0f, 1.0f};
 GLfloat g_light_position1[] = {0.0f, 3.0f, 0.0f, 0.0f};
 GLfloat filter;
-
-
-#define print(...) print_debug(__FILE__, __FUNCTION__,__LINE__, ## __VA_ARGS__)
-void print_debug(const char *file, const char *funtion, int linenum,const char *fmt, ...)
-{
-    char buf[512]={0};
-    int offset = 0;
-    int level = 0;
-    if(fmt[0] > 0 && fmt[0] < 7)
-    {
-        offset = 1;
-        if(fmt[0] <= 1)//DEBUG_HIDDEN
-        {
-            goto end;
-        }
-        else
-        {
-            level = fmt[0];
-        }
-    }
-    va_list ap;
-    va_start (ap, fmt);
-    vsnprintf(buf,512,fmt,ap);
-    va_end (ap);
-
-    fprintf(stderr,"[%s] %d <%s>: ", file, linenum, funtion);
-
-    if(level == 3 || level == 4 || level == 5 || level == 6)//DEBUG_FATAL DEBUG_LIGHT
-    {
-        //fprintf(stderr,"\033[31;46;5m");//闪烁
-        if(level == 3 || level == 4)
-        {
-            fprintf(stderr,"\033[31;46;1m");
-        }
-        else
-        {
-            fprintf(stderr,"\033[31;42;1m");
-        }
-    }
-    fprintf(stderr,"%s",buf + offset);
-
-    if(level == 3 || level == 4 || level == 5 || level == 6)//DEBUG_FATAL DEBUG_LIGHT
-    {
-        fprintf(stderr,"\033[39;49;0m");
-    }
-    fprintf(stderr,"\n");
-    if(level == 5)//DEBUG_FATAL
-    {
-        if(level == 5)
-        {
-            fprintf(stderr,"\n");
-            fprintf(stderr,"\033[31;46;5m");//闪烁
-            fprintf(stderr,"======================FATAL ERROR======================");
-            fprintf(stderr,"\033[39;49;0m");
-            fprintf(stderr,"\n");
-        }
-    }
-end:
-    return;
-}
-
-typedef struct STRUCT_IMAGE
-{
-    unsigned long x, y;
-    char *data;
-}stu_image;
-
-int image_load(char *path, stu_image *image)
-{
-    FILE *fp = NULL;
-    unsigned long size;
-    unsigned short planes, bpp;
-    char temp;
-    int ret = 0;
-
-    fp = fopen(path, "rb");
-    if(NULL == fp)
-    {
-        print("File not found[%s]", path);
-        return 0;
-    }
-
-    fseek(fp, 18, SEEK_SET);
-
-    ret = fread(&image->x, 4, 1, fp);
-    if(ret != 1)
-    {
-        print("read image x fail\n");
-        return 0;
-    }
-
-    ret = fread(&image->y, 4, 1, fp);
-    if(ret != 1)
-    {
-        print("read image y fail\n");
-        return 0;
-    }
-
-
-    ret = fread(&planes, 2, 1, fp);
-    if(ret != 1)
-    {
-        print("read planes fail\n");
-        return 0;
-    }
-
-    if(planes != 1)
-    {
-        print("planes form[%s] is not 1:%u\n", path, planes);
-        return 0;
-    }
-
-    ret = fread(&bpp, 2, 1, fp);
-    if(ret != 1)
-    {
-        print("read bpp fail\n");
-        return 0;
-    }
-
-    if(bpp != 24 && bpp != 32)
-    {
-        print("bpp form[%s] is not 24:%u\n", path, bpp);
-        return 0;
-    }
-
-    fseek(fp, 24, SEEK_CUR);
-
-    if(bpp == 24)
-    {
-        size = image->x * image->y * 3;
-    }
-    else
-    {
-        size = image->x * image->y * 4;
-    }
-    image->data = (char *)malloc(size);
-    if(image->data == NULL)
-    {
-        print("malloc data fial\n");
-        return 0;
-    }
-
-    ret = fread(image->data, 1, size, fp);
-    if(ret != size)
-    {
-        print("read data fail\n");
-        return 0;
-    }
-
-    if(bpp == 32)
-    {
-        for(int i=0; i<size; i+=4)
-        {
-            temp = image->data[i];
-            image->data[i] = image->data[i+3];
-            image->data[i+3] = temp;
-            temp = image->data[i+1];
-            image->data[i+1] = image->data[i+2];
-            image->data[i+2] = temp;
-        }
-    }
-    else
-    {
-        for(int i=0; i<size; i+=3)
-        {
-            temp = image->data[i];
-            image->data[i] = image->data[i+2];
-            image->data[i+2] = temp;
-        }
-    }
-    return 1;
-
-}
 
 int load_gltextures(void)
 {
@@ -323,6 +152,8 @@ void InitGL(int Width, int Height)	        // We call this right after our OpenG
     glBlendFunc(GL_SRC_ALPHA,GL_ONE);			// Set The Blending Function For Translucency
     glColor4f(1.0f, 1.0f, 1.0f, 0.5);
 }
+
+
 
 /* The function called when our window is resized (which shouldn't happen, because we're fullscreen) */
 void ReSizeGLScene(int Width, int Height)

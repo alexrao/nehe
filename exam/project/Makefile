@@ -10,7 +10,7 @@ LDCFLAGS += -std=c99 \
 CC = gcc
 
 # 源文件
-SRC_C = main.c
+SRC_C = main.c print.c image.c
 
 # 最终生成文件
 SRC_O = $(patsubst %.c,%.o,$(SRC_C))
