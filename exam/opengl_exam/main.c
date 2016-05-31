@@ -245,7 +245,7 @@ int load_gltextures(void)
             return 0;
         }
 
-        snprintf(path, sizeof(path), "test%d.bmp", i);
+        snprintf(path, sizeof(path), "data/test%d.bmp", i);
         if(image_load(path, image) == 0)
         {
             print("load image fail");
