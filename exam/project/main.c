@@ -63,6 +63,7 @@ int load_gltextures(void)
 {
     char path[256];
     stu_image *image;
+    int bpp = 0;
 
 
     for(int i=0; i<3; i++)
@@ -75,7 +76,8 @@ int load_gltextures(void)
         }
 
         snprintf(path, sizeof(path), "data/test%d.bmp", i);
-        if(image_load(path, image) == 0)
+        bpp =image_load(path, image);
+        if(bpp == 0)
         {
             print("load image fail");
             free(image);
@@ -91,7 +93,14 @@ int load_gltextures(void)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
         //glTexImage2D(GL_TEXTURE_2D, 0, 4, image->x, image->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, image->x, image->y, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
+        if(bpp == 32) // 32位RGBA图片处理
+        {
+            gluBuild2DMipmaps(GL_TEXTURE_2D, 4, image->x, image->y, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
+        }
+        else // 24位RGB图片处理
+        {
+            gluBuild2DMipmaps(GL_TEXTURE_2D, 3, image->x, image->y, GL_RGB, GL_UNSIGNED_BYTE, image->data);
+        }
 
         if(image)
         {

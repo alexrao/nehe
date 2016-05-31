@@ -108,7 +108,7 @@ int image_load(char *path, stu_image *image)
             image->data[i+2] = temp;
         }
     }
-    return 1;
 
+    return bpp;
 }
 
